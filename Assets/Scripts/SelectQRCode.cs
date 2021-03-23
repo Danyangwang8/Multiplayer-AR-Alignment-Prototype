@@ -5,26 +5,20 @@ using Mirror;
 
 public class SelectQRCode : NetworkBehaviour
 {
-    enum QRCubeColor
-    {
-        Red,
-        Black,
-        Blue,
-        Green
-    }
-
-
     private Ray ray;
     private RaycastHit hit;
     [SerializeField]
     private Camera cam;
     private Transform m_transform;
+    public ModelTransformManager mm;
 
     private Transform selectedCubeTransform;
     private Vector3 m_QRCubePos;
     private Quaternion m_QRCubeRot;
 
     private Transform ModelTransform;
+
+
     [SerializeField]
     private GameObject TransformTools;
     private Transform ModelTransformChild;
@@ -34,6 +28,7 @@ public class SelectQRCode : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
+        mm.selectQR = this;
         if (cam == null)
         {
             Debug.LogError("SelectQRCode: No Camera referenced!");
@@ -43,19 +38,26 @@ public class SelectQRCode : NetworkBehaviour
         ModelTransform = GameObject.Find("ModelToAlign").GetComponent<Transform>();
     }
 
+    private void Awake()
+    {
+        mm = FindObjectOfType<ModelTransformManager>();
+    }
+
     void Update()
     {
         if (!isLocalPlayer)
         {
             return;
         }
-
         ray = cam.ScreenPointToRay(Input.mousePosition);
         if(Input.GetMouseButtonDown(0))
         {
             Selecting();
+            if(ModelTransform != null)
+            {
+                CmdChangeModelTransform(ModelTransform.position, ModelTransform.rotation);
+            }
         }
-
     }
 
 
@@ -70,7 +72,6 @@ public class SelectQRCode : NetworkBehaviour
             ChangeModelToAlignTransform(m_QRCubePos, m_QRCubeRot);
         }
     }
-
 
     void GetSelectedCubeTransformInfo(Transform parentTransform)
     {
@@ -93,15 +94,12 @@ public class SelectQRCode : NetworkBehaviour
 
         go.transform.position = worldPos;
         go.transform.rotation = worldRot;
-        go.transform.SetParent(ModelTransform);
-        
     }
 
     //Pass the ShowCaseRoom triggered QRCode object position and rotation to the empty object.
     //And rotating ModelToAlign object base on the empty object
     void ChangeModelToAlignTransform(Vector3 m_QRCubePos, Quaternion m_QRCubeRot)
     {
-        go.transform.SetParent(null);
         ModelTransform.SetParent(go.transform);
 
         go.transform.position = m_QRCubePos;
@@ -109,5 +107,15 @@ public class SelectQRCode : NetworkBehaviour
 
         ModelTransform.SetParent(null);
         Destroy(go);
+
+        mm.current_Pos = ModelTransform.position;
+        mm.current_Rot = ModelTransform.rotation;
+    }
+
+    [ClientRpc]
+    public void CmdChangeModelTransform(Vector3 pos, Quaternion rot)
+    {
+        ModelTransform.position = pos;
+        ModelTransform.rotation = rot;
     }
 }

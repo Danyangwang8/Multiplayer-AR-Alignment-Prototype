@@ -20,9 +20,6 @@ public class SelectQRCode : NetworkBehaviour
     private Camera cam;
     private Transform m_transform;
 
-    [SyncVar(hook = nameof(OnHitNameChanged))]
-    private string hittheQRCodeName;
-
     private Transform selectedCubeTransform;
     private Vector3 m_QRCubePos;
     private Quaternion m_QRCubeRot;
@@ -48,27 +45,25 @@ public class SelectQRCode : NetworkBehaviour
 
     void Update()
     {
-        //if (!isLocalPlayer)
-        //{
-        //    return;
-        //}
+        if (!isLocalPlayer)
+        {
+            return;
+        }
 
         ray = cam.ScreenPointToRay(Input.mousePosition);
         if(Input.GetMouseButtonDown(0))
         {
-            CmdSelecting();
+            Selecting();
         }
 
     }
 
-    [Command]
-    void CmdSelecting()
+
+    void Selecting()
     {
         mask = LayerMask.GetMask("QRCode");
         if (Physics.Raycast(ray, out hit, mask) && hit.collider.transform.name == "Panel")
         {
-            hittheQRCodeName = hit.collider.transform.parent.name;
-
             Debug.DrawLine(m_transform.position, hit.point, Color.red);
             GetSelectedCubeTransformInfo(hit.collider.transform.parent);
             SetObjectAlignwithTransformPoint(selectedCubeTransform);
@@ -114,10 +109,5 @@ public class SelectQRCode : NetworkBehaviour
 
         ModelTransform.SetParent(null);
         Destroy(go);
-    }
-
-    void OnHitNameChanged(string oldName, string newName)
-    {
-        hit.collider.transform.parent.name = newName;
     }
 }

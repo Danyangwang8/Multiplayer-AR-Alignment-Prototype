@@ -8,6 +8,7 @@ TagManager:
   - Blue
   - Green
   - Black
+  - QRCode
   layers:
   - Default
   - TransparentFX

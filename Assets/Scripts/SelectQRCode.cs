@@ -19,6 +19,10 @@ public class SelectQRCode : NetworkBehaviour
     [SerializeField]
     private Camera cam;
     private Transform m_transform;
+
+    [SyncVar(hook = nameof(OnHitNameChanged))]
+    private string hittheQRCodeName;
+
     private Transform selectedCubeTransform;
     private Vector3 m_QRCubePos;
     private Quaternion m_QRCubeRot;
@@ -31,47 +35,53 @@ public class SelectQRCode : NetworkBehaviour
     [SerializeField]
     private LayerMask mask;
 
-    void Start()
+    public override void OnStartLocalPlayer()
     {
-        if(cam == null)
+        if (cam == null)
         {
             Debug.LogError("SelectQRCode: No Camera referenced!");
             this.enabled = false;
         }
         m_transform = gameObject.GetComponent<Transform>();
         ModelTransform = GameObject.Find("ModelToAlign").GetComponent<Transform>();
-
     }
 
     void Update()
     {
+        //if (!isLocalPlayer)
+        //{
+        //    return;
+        //}
+
         ray = cam.ScreenPointToRay(Input.mousePosition);
         if(Input.GetMouseButtonDown(0))
         {
-            Selecting();
+            CmdSelecting();
         }
 
     }
 
-    void Selecting()
+    [Command]
+    void CmdSelecting()
     {
         mask = LayerMask.GetMask("QRCode");
         if (Physics.Raycast(ray, out hit, mask) && hit.collider.transform.name == "Panel")
         {
+            hittheQRCodeName = hit.collider.transform.parent.name;
+
             Debug.DrawLine(m_transform.position, hit.point, Color.red);
-            CmdGetSelectedCubeTransformInfo();
+            GetSelectedCubeTransformInfo(hit.collider.transform.parent);
+            SetObjectAlignwithTransformPoint(selectedCubeTransform);
+            ChangeModelToAlignTransform(m_QRCubePos, m_QRCubeRot);
         }
     }
 
-    void CmdGetSelectedCubeTransformInfo()
+
+    void GetSelectedCubeTransformInfo(Transform parentTransform)
     {
-        selectedCubeTransform = hit.collider.transform.parent;
+        selectedCubeTransform = parentTransform;
         m_QRCubePos = selectedCubeTransform.position;
         m_QRCubeRot = selectedCubeTransform.rotation;
-        //Debug.Log($"pos: {m_QRCubePos}, Rot: {m_QRCubeRot}");
-        SetObjectAlignwithTransformPoint(selectedCubeTransform);
-        ChangeModelToAlignTransform(m_QRCubePos, m_QRCubeRot);
-
     }
 
 
@@ -104,5 +114,10 @@ public class SelectQRCode : NetworkBehaviour
 
         ModelTransform.SetParent(null);
         Destroy(go);
+    }
+
+    void OnHitNameChanged(string oldName, string newName)
+    {
+        hit.collider.transform.parent.name = newName;
     }
 }

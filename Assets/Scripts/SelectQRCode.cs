@@ -61,7 +61,7 @@ public class SelectQRCode : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
+    [Command]
     void CmdSelecting()
     {
         mask = LayerMask.GetMask("QRCode");

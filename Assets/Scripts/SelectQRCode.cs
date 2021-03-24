@@ -16,6 +16,7 @@ public class SelectQRCode : NetworkBehaviour
     private Quaternion m_QRCubeRot;
 
     private ModelTransformManager mm;
+
     private Transform ModelTransform;
 
 
@@ -25,8 +26,6 @@ public class SelectQRCode : NetworkBehaviour
     private GameObject go;
     [SerializeField]
     private LayerMask mask;
-
-    [SyncVar(hook = nameof(OnSelectedChanged))]
     private bool isSelected = false;
 
     public override void OnStartLocalPlayer()
@@ -52,7 +51,7 @@ public class SelectQRCode : NetworkBehaviour
         ray = cam.ScreenPointToRay(Input.mousePosition);
         if(Input.GetMouseButtonDown(0))
         {
-            Selecting();
+            CmdSelecting();
             Debug.Log("isSelected: " + isSelected);
         }
         if(isSelected)
@@ -68,7 +67,8 @@ public class SelectQRCode : NetworkBehaviour
         mm = FindObjectOfType<ModelTransformManager>();
     }
 
-    void Selecting()
+    [Command]
+    void CmdSelecting()
     {
         mask = LayerMask.GetMask("QRCode");
         if (Physics.Raycast(ray, out hit, mask) && hit.collider.transform.name == "Panel")
@@ -77,6 +77,7 @@ public class SelectQRCode : NetworkBehaviour
             //put hitted object in the selectedCueTransform
             selectedCubeTransform = hit.collider.transform.parent;
             isSelected = true;
+            Debug.Log("Send Pos to server");
         }
     }
 
@@ -116,10 +117,5 @@ public class SelectQRCode : NetworkBehaviour
 
         mm.current_Pos = ModelTransform.position;
         mm.current_Rot = ModelTransform.rotation;
-    }
-
-    void OnSelectedChanged(bool oldSeleced, bool newSelected)
-    {
-        isSelected = newSelected;
     }
 }

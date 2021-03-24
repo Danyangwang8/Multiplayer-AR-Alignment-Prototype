@@ -51,7 +51,7 @@ public class SelectQRCode : NetworkBehaviour
         ray = cam.ScreenPointToRay(Input.mousePosition);
         if(Input.GetMouseButtonDown(0))
         {
-            CmdSelecting();
+            Selecting();
             Debug.Log("isSelected: " + isSelected);
         }
         if(isSelected)
@@ -67,8 +67,7 @@ public class SelectQRCode : NetworkBehaviour
         mm = FindObjectOfType<ModelTransformManager>();
     }
 
-    [Command]
-    void CmdSelecting()
+    void Selecting()
     {
         mask = LayerMask.GetMask("QRCode");
         if (Physics.Raycast(ray, out hit, mask) && hit.collider.transform.name == "Panel")
@@ -77,8 +76,16 @@ public class SelectQRCode : NetworkBehaviour
             //put hitted object in the selectedCueTransform
             selectedCubeTransform = hit.collider.transform.parent;
             isSelected = true;
-            Debug.Log("Send Pos to server");
+            CmdSendPosAndtrueToServer();
         }
+    }
+
+    [Command]
+    void CmdSendPosAndtrueToServer()
+    {
+        isSelected = true;
+        selectedCubeTransform = hit.collider.transform.parent;
+        Debug.Log("Send Pos to server");
     }
 
     void GetSelectedCubeTransformInfo(Transform parentTransform)

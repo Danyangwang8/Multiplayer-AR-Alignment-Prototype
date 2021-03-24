@@ -16,12 +16,11 @@ public class ModelTransformManager : NetworkBehaviour
     void OnPosChanged(Vector3 oldPos, Vector3 newPos)
     {
 
-        m_transform.position = newPos;
+       // m_transform.position = newPos;
     }
 
     void OnRotChanged(Quaternion oldRot, Quaternion newRot)
     {
-        m_transform.rotation = newRot;
-
+       // m_transform.rotation = newRot;
     }
 }

@@ -13,6 +13,7 @@ public class SelectQRCode : NetworkBehaviour
 
     private GameObject selectedQRCodeObj;
     private string selectedCubeTransform;
+
     private Vector3 m_QRCubePos;
     private Quaternion m_QRCubeRot;
     private Vector3 worldPos;
@@ -29,6 +30,8 @@ public class SelectQRCode : NetworkBehaviour
     //------UI--------//
     private DataScript dataScript;
     private string dataCubeName;
+    private string selectedDataObject;
+    private string ALineOfData;
 
     private void Awake()
     {
@@ -38,7 +41,6 @@ public class SelectQRCode : NetworkBehaviour
     public override void OnStartLocalPlayer()
     {
         dataScript.selectQR = this;
-
         if (cam == null)
         {
             Debug.LogError("SelectQRCode: No Camera referenced!");
@@ -47,8 +49,8 @@ public class SelectQRCode : NetworkBehaviour
         m_transform = gameObject.GetComponent<Transform>();
         ModelTransform = GameObject.FindGameObjectWithTag("ModelToAlign");
         ModelChilds = GameObject.FindGameObjectWithTag("ModelQRCodes");
+        //---------CSV------------//
         csvController.GetInstance().loadFile(Application.dataPath + "/Resources", "Metadata.csv");
-
     }
 
     void Update()
@@ -63,11 +65,6 @@ public class SelectQRCode : NetworkBehaviour
         {
             Selecting();
         }
-
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            CmdSendDataToServer();
-        }
     }
     
 
@@ -81,8 +78,15 @@ public class SelectQRCode : NetworkBehaviour
             selectedCubeTransform = hit.collider.transform.parent.tag;
             CmdSendPosAndtrueToServer(selectedCubeTransform);
         }
-    }
 
+        if(Physics.Raycast(ray, out hit, mask) && hit.collider.transform.tag == "DataObjects")
+        {
+            Debug.DrawLine(m_transform.position, hit.point, Color.red);
+            selectedDataObject = hit.collider.transform.name;
+            CmdSendDataToServer(selectedDataObject);
+        }
+    }
+   
     [Command]
     void CmdSendPosAndtrueToServer(string name)
     {
@@ -98,12 +102,44 @@ public class SelectQRCode : NetworkBehaviour
         ChangeModelToAlignTransform(m_QRCubePos, m_QRCubeRot);
     }
 
-    //Data message
+    //----------CSV Data message----------------//
     [Command]
-    void CmdSendDataToServer()
+    void CmdSendDataToServer(string dataCubeName)
     {
-        dataCubeName = csvController.GetInstance().getString(1, 0);
-        dataScript.dataText = dataCubeName;
+        if (dataCubeName == "Red")
+        {
+            Debug.Log("Red");
+            PrintWholeLineOfData(1);
+        }
+        else if (dataCubeName == "Blue")
+        {
+            Debug.Log("Blue");
+            PrintWholeLineOfData(2);
+        }
+        else if (dataCubeName == "Green")
+        {
+            Debug.Log("Green");
+            PrintWholeLineOfData(3);
+        }
+        else if(dataCubeName == "Yellow")
+        {
+            Debug.Log("Yellow");
+            PrintWholeLineOfData(4);
+        }
+
+
+        // = csvController.GetInstance().getString(1, 0);
+        // dataScript.dataText = dataCubeName;
+    }
+
+    void PrintWholeLineOfData(int row)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            ALineOfData += csvController.GetInstance().getString(0, i) + ": " + csvController.GetInstance().getString(row, i) + ", ";
+        }
+
+        dataScript.dataText = ALineOfData;
     }
 
     void GetSelectedCubeTransformInfo(Transform parentTransform)
@@ -112,13 +148,10 @@ public class SelectQRCode : NetworkBehaviour
         m_QRCubeRot = parentTransform.rotation;
     }
 
-
     void SetObjectAlignwithTransformPoint(string transformName)
     {
-        Debug.Log(selectedQRCodeObj.tag);
         ModelChilds = GameObject.FindGameObjectWithTag("ModelQRCodes");
 
-        //worldPos = ModelChilds.transform.GetChild(0).position;
         worldPos = FindInChildren(ModelChilds, transformName).transform.position;
         worldRot = FindInChildren(ModelChilds, transformName).transform.rotation;
 
@@ -140,6 +173,12 @@ public class SelectQRCode : NetworkBehaviour
         Destroy(go);
     }
 
+    /// <summary>
+    /// This part of code is find the object's child
+    /// </summary>
+    /// <param name="transform"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
     public Transform FindInChildren(Transform transform, string name)
     {
         if (transform == null) return null;

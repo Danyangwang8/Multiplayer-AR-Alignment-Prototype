@@ -4,10 +4,6 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Red
-  - Blue
-  - Green
-  - Black
   - QRCode
   - QRCode1
   - QRCode2
@@ -15,6 +11,7 @@ TagManager:
   - ModelToAlign
   - ModelQRCodes
   - TransformTools
+  - DataObjects
   layers:
   - Default
   - TransparentFX

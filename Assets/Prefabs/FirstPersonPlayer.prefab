@@ -116,7 +116,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1452882538699173299
 Transform:
   m_ObjectHideFlags: 0
@@ -304,8 +304,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  speed: 5
-  mouseSensitivity: 150
   cam: {fileID: 8141916036456478390}
 --- !u!114 &461538759426267368
 MonoBehaviour:

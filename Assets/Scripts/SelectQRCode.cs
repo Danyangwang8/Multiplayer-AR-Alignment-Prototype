@@ -44,7 +44,7 @@ public class SelectQRCode : NetworkBehaviour
         ModelTransform = GameObject.FindGameObjectWithTag("ModelToAlign");
         ModelChilds = GameObject.FindGameObjectWithTag("ModelQRCodes");
         //---------CSV------------//
-        csvController.GetInstance().loadFile(Application.dataPath + "/Resources", "Metadata.csv");
+        csvController.GetInstance().loadFile(Application.dataPath + "/StreamingAssets", "Metadata.csv");
     }
 
     void Update()

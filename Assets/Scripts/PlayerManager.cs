@@ -5,10 +5,8 @@ using Mirror;
 
 public class PlayerManager : NetworkBehaviour
 {
-    [SerializeField]
-    Behaviour[] componentsToDisable;
-    [SerializeField]
-    GameObject[] objectsToDisable;
+    public Behaviour[] componentsToDisable;
+    public GameObject[] objectsToDisable;
     Camera sceneCamera;
 
     void Start()

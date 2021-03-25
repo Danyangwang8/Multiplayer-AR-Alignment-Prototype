@@ -7,29 +7,23 @@ public class SelectQRCode : NetworkBehaviour
 {
     private Ray ray;
     private RaycastHit hit;
-    [SerializeField]
-    private Camera cam;
+    public Camera cam;
     private Transform m_transform;
-
     private GameObject selectedQRCodeObj;
     private string selectedCubeTransform;
 
     private Vector3 m_QRCubePos;
     private Quaternion m_QRCubeRot;
-    private Vector3 worldPos;
-    private Quaternion worldRot;
 
     private GameObject ModelTransform;
     private GameObject ModelChilds;
-    [SerializeField]
-    private GameObject TransformTools;
+    public GameObject TransformTools;
     private GameObject go;
     [SerializeField]
     private LayerMask mask;
 
     //------UI--------//
     private DataScript dataScript;
-    private string dataCubeName;
     private string selectedDataObject;
     private string ALineOfData;
 
@@ -106,30 +100,26 @@ public class SelectQRCode : NetworkBehaviour
     [Command]
     void CmdSendDataToServer(string dataCubeName)
     {
+        if(ALineOfData != null)
+        {
+            ALineOfData = null;
+        }
         if (dataCubeName == "Red")
         {
-            Debug.Log("Red");
             PrintWholeLineOfData(1);
         }
         else if (dataCubeName == "Blue")
         {
-            Debug.Log("Blue");
             PrintWholeLineOfData(2);
         }
         else if (dataCubeName == "Green")
         {
-            Debug.Log("Green");
             PrintWholeLineOfData(3);
         }
         else if(dataCubeName == "Yellow")
         {
-            Debug.Log("Yellow");
             PrintWholeLineOfData(4);
         }
-
-
-        // = csvController.GetInstance().getString(1, 0);
-        // dataScript.dataText = dataCubeName;
     }
 
     void PrintWholeLineOfData(int row)
@@ -138,7 +128,6 @@ public class SelectQRCode : NetworkBehaviour
         {
             ALineOfData += csvController.GetInstance().getString(0, i) + ": " + csvController.GetInstance().getString(row, i) + ", ";
         }
-
         dataScript.dataText = ALineOfData;
     }
 
@@ -152,8 +141,8 @@ public class SelectQRCode : NetworkBehaviour
     {
         ModelChilds = GameObject.FindGameObjectWithTag("ModelQRCodes");
 
-        worldPos = FindInChildren(ModelChilds, transformName).transform.position;
-        worldRot = FindInChildren(ModelChilds, transformName).transform.rotation;
+        Vector3 worldPos = FindInChildren(ModelChilds, transformName).transform.position;
+        Quaternion worldRot = FindInChildren(ModelChilds, transformName).transform.rotation;
 
         //spawn a empty object align with QRCode and set as model's parent
         go = GameObject.Instantiate(TransformTools, Vector3.up, Quaternion.identity);

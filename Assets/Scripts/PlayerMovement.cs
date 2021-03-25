@@ -6,14 +6,11 @@ using Mirror;
 public class PlayerMovement : NetworkBehaviour
 {
     private CharacterController characterController;
-    [SerializeField]
     private float speed = 5.0f;
-    [SerializeField]
     private float mouseSensitivity = 150.0f;
     private float xRotation = 0.0f;
     private Transform m_transform;
-    [SerializeField]
-    private Camera cam;
+    public Camera cam;
 
 
     public override void OnStartLocalPlayer()

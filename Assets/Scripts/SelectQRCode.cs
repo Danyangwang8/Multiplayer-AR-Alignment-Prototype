@@ -132,6 +132,7 @@ public class SelectQRCode : NetworkBehaviour
     //And rotating ModelToAlign object base on the empty object
     void ChangeModelToAlignTransform(Vector3 m_QRCubePos, Quaternion m_QRCubeRot)
     {
+        ModelTransform = GameObject.FindGameObjectWithTag("ModelToAlign");
         ModelTransform.transform.SetParent(go.transform);
         go.transform.position = m_QRCubePos;
         go.transform.rotation = m_QRCubeRot;

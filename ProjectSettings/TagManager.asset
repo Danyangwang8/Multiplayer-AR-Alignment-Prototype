@@ -12,6 +12,9 @@ TagManager:
   - QRCode1
   - QRCode2
   - QRCode3
+  - ModelToAlign
+  - ModelQRCodes
+  - TransformTools
   layers:
   - Default
   - TransparentFX

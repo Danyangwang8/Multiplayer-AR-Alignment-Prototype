@@ -10,12 +10,12 @@ public class csvController
     static csvController csv;
     public List<string[]> arrayData;
 
-    private csvController()   //单例，构造方法为私有
+    private csvController()   
     {
         arrayData = new List<string[]>();
     }
 
-    public static csvController GetInstance()   //单例方法获取对象
+    public static csvController GetInstance()   
     {
         if (csv == null)
         {
@@ -30,7 +30,7 @@ public class csvController
         StreamReader sr = null;
         try
         {
-            string file_url = path + "//" + fileName;    //根据路径打开文件
+            string file_url = path + "//" + fileName;    
             sr = File.OpenText(file_url);
             Debug.Log("File Find in " + file_url);
         }
@@ -41,9 +41,9 @@ public class csvController
         }
 
         string line;
-        while ((line = sr.ReadLine()) != null)   //按行读取
+        while ((line = sr.ReadLine()) != null)
         {
-            arrayData.Add(line.Split(';'));   //每行逗号分隔,split()方法返回 string[]
+            arrayData.Add(line.Split(';'));   
         }
         sr.Close();
         sr.Dispose();

@@ -15,15 +15,16 @@ public class SelectQRCode : NetworkBehaviour
     private string selectedCubeTransform;
     private Vector3 m_QRCubePos;
     private Quaternion m_QRCubeRot;
+    private Vector3 worldPos;
+    private Quaternion worldRot;
 
-    private Transform ModelTransform;
+    private GameObject ModelTransform;
+    private GameObject ModelChilds;
     [SerializeField]
     private GameObject TransformTools;
-    private Transform ModelTransformChild;
     private GameObject go;
     [SerializeField]
     private LayerMask mask;
-    public bool isSelected = false;
 
     //------UI--------//
     private DataScript dataScript;
@@ -44,8 +45,10 @@ public class SelectQRCode : NetworkBehaviour
             this.enabled = false;
         }
         m_transform = gameObject.GetComponent<Transform>();
-        ModelTransform = GameObject.Find("ModelToAlign").GetComponent<Transform>();
+        ModelTransform = GameObject.FindGameObjectWithTag("ModelToAlign");
+        ModelChilds = GameObject.FindGameObjectWithTag("ModelQRCodes");
         csvController.GetInstance().loadFile(Application.dataPath + "/Resources", "Metadata.csv");
+
     }
 
     void Update()
@@ -59,13 +62,6 @@ public class SelectQRCode : NetworkBehaviour
         if(Input.GetMouseButtonDown(0))
         {
             Selecting();
-            Debug.Log("isSelected: " + isSelected);
-        }
-        if(isSelected)
-        {
-
-            
-            isSelected = false;
         }
 
         if(Input.GetKeyDown(KeyCode.Space))
@@ -83,8 +79,6 @@ public class SelectQRCode : NetworkBehaviour
             Debug.DrawLine(m_transform.position, hit.point, Color.red);
             //put hitted object in the selectedCueTransform
             selectedCubeTransform = hit.collider.transform.parent.tag;
-           // selectedQRCodeObj = GameObject.FindGameObjectWithTag(selectedCubeTransform);
-            isSelected = true;
             CmdSendPosAndtrueToServer(selectedCubeTransform);
         }
     }
@@ -92,12 +86,16 @@ public class SelectQRCode : NetworkBehaviour
     [Command]
     void CmdSendPosAndtrueToServer(string name)
     {
+        RpcSendPosAndtrueToServer(name);
+    }
+
+    [ClientRpc]
+    void RpcSendPosAndtrueToServer(string name)
+    {
         selectedQRCodeObj = GameObject.FindGameObjectWithTag(name);
-        isSelected = true;
         GetSelectedCubeTransformInfo(selectedQRCodeObj.transform);
-        SetObjectAlignwithTransformPoint(selectedQRCodeObj.transform);
+        SetObjectAlignwithTransformPoint(selectedQRCodeObj.name);
         ChangeModelToAlignTransform(m_QRCubePos, m_QRCubeRot);
-        Debug.Log(selectedQRCodeObj.name);
     }
 
     //Data message
@@ -115,17 +113,17 @@ public class SelectQRCode : NetworkBehaviour
     }
 
 
-    void SetObjectAlignwithTransformPoint(Transform transformName)
+    void SetObjectAlignwithTransformPoint(string transformName)
     {
-        Transform ModelChilds = ModelTransform.Find("QRcodes");
-        ModelTransformChild = ModelChilds.transform.Find(transformName.name);
+        Debug.Log(selectedQRCodeObj.tag);
+        ModelChilds = GameObject.FindGameObjectWithTag("ModelQRCodes");
 
-        Vector3 worldPos = ModelTransformChild.position;
-        Quaternion worldRot = ModelTransformChild.rotation;
+        //worldPos = ModelChilds.transform.GetChild(0).position;
+        worldPos = FindInChildren(ModelChilds, transformName).transform.position;
+        worldRot = FindInChildren(ModelChilds, transformName).transform.rotation;
 
         //spawn a empty object align with QRCode and set as model's parent
         go = GameObject.Instantiate(TransformTools, Vector3.up, Quaternion.identity);
-
         go.transform.position = worldPos;
         go.transform.rotation = worldRot;
     }
@@ -134,12 +132,32 @@ public class SelectQRCode : NetworkBehaviour
     //And rotating ModelToAlign object base on the empty object
     void ChangeModelToAlignTransform(Vector3 m_QRCubePos, Quaternion m_QRCubeRot)
     {
-        ModelTransform.SetParent(go.transform);
-
+        ModelTransform.transform.SetParent(go.transform);
         go.transform.position = m_QRCubePos;
         go.transform.rotation = m_QRCubeRot;
-        Debug.Log("Moving Cube");
-        ModelTransform.SetParent(null);
+        ModelTransform.transform.SetParent(null);
         Destroy(go);
+    }
+
+    public Transform FindInChildren(Transform transform, string name)
+    {
+        if (transform == null) return null;
+        int count = transform.childCount;
+        for (int i = 0; i < count; i++)
+        {
+            Transform child = transform.GetChild(i);
+            if (child.name == name) return child;
+            Transform subChild = FindInChildren(child, name);
+            if (subChild != null) return subChild;
+        }
+        return null;
+    }
+
+    public GameObject FindInChildren(GameObject gameObject, string name)
+    {
+        if (gameObject == null) return null;
+        Transform transform = gameObject.transform;
+        Transform child = FindInChildren(transform, name);
+        return child != null ? child.gameObject : null;
     }
 }

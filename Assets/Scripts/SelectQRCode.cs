@@ -11,25 +11,33 @@ public class SelectQRCode : NetworkBehaviour
     private Camera cam;
     private Transform m_transform;
 
-    private Transform selectedCubeTransform;
+    private GameObject selectedQRCodeObj;
+    private string selectedCubeTransform;
     private Vector3 m_QRCubePos;
     private Quaternion m_QRCubeRot;
 
-    private ModelTransformManager mm;
-
     private Transform ModelTransform;
-
-
     [SerializeField]
     private GameObject TransformTools;
     private Transform ModelTransformChild;
     private GameObject go;
     [SerializeField]
     private LayerMask mask;
-    private bool isSelected = false;
+    public bool isSelected = false;
+
+    //------UI--------//
+    private DataScript dataScript;
+    private string dataCubeName;
+
+    private void Awake()
+    {
+        dataScript = FindObjectOfType<DataScript>();
+    }
 
     public override void OnStartLocalPlayer()
     {
+        dataScript.selectQR = this;
+
         if (cam == null)
         {
             Debug.LogError("SelectQRCode: No Camera referenced!");
@@ -37,12 +45,11 @@ public class SelectQRCode : NetworkBehaviour
         }
         m_transform = gameObject.GetComponent<Transform>();
         ModelTransform = GameObject.Find("ModelToAlign").GetComponent<Transform>();
-
+        csvController.GetInstance().loadFile(Application.dataPath + "/Resources", "Metadata.csv");
     }
 
     void Update()
     {
-        mm.selectQR = this;
         if (!isLocalPlayer)
         {
             return;
@@ -56,16 +63,17 @@ public class SelectQRCode : NetworkBehaviour
         }
         if(isSelected)
         {
-            GetSelectedCubeTransformInfo(selectedCubeTransform);
-            SetObjectAlignwithTransformPoint(selectedCubeTransform);
-            ChangeModelToAlignTransform(m_QRCubePos, m_QRCubeRot);
+
+            
             isSelected = false;
         }
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            CmdSendDataToServer();
+        }
     }
-    private void Awake()
-    {
-        mm = FindObjectOfType<ModelTransformManager>();
-    }
+    
 
     void Selecting()
     {
@@ -74,18 +82,30 @@ public class SelectQRCode : NetworkBehaviour
         {
             Debug.DrawLine(m_transform.position, hit.point, Color.red);
             //put hitted object in the selectedCueTransform
-            selectedCubeTransform = hit.collider.transform.parent;
+            selectedCubeTransform = hit.collider.transform.parent.tag;
+           // selectedQRCodeObj = GameObject.FindGameObjectWithTag(selectedCubeTransform);
             isSelected = true;
-            CmdSendPosAndtrueToServer();
+            CmdSendPosAndtrueToServer(selectedCubeTransform);
         }
     }
 
     [Command]
-    void CmdSendPosAndtrueToServer()
+    void CmdSendPosAndtrueToServer(string name)
     {
+        selectedQRCodeObj = GameObject.FindGameObjectWithTag(name);
         isSelected = true;
-        selectedCubeTransform = hit.collider.transform.parent;
-        Debug.Log("Send Pos to server");
+        GetSelectedCubeTransformInfo(selectedQRCodeObj.transform);
+        SetObjectAlignwithTransformPoint(selectedQRCodeObj.transform);
+        ChangeModelToAlignTransform(m_QRCubePos, m_QRCubeRot);
+        Debug.Log(selectedQRCodeObj.name);
+    }
+
+    //Data message
+    [Command]
+    void CmdSendDataToServer()
+    {
+        dataCubeName = csvController.GetInstance().getString(1, 0);
+        dataScript.dataText = dataCubeName;
     }
 
     void GetSelectedCubeTransformInfo(Transform parentTransform)
@@ -121,8 +141,5 @@ public class SelectQRCode : NetworkBehaviour
         Debug.Log("Moving Cube");
         ModelTransform.SetParent(null);
         Destroy(go);
-
-        mm.current_Pos = ModelTransform.position;
-        mm.current_Rot = ModelTransform.rotation;
     }
 }

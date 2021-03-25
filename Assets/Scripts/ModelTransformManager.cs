@@ -1,26 +1,68 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Mirror;
 
-public class ModelTransformManager : NetworkBehaviour
+public class ModelTransformManager : MonoBehaviour
 {
-    public Transform m_transform;
-    public SelectQRCode selectQR;
+    private Transform ModelTransform;
+    private Transform selectedCubeTransform;
+    private Vector3 m_QRCubePos;
+    private Quaternion m_QRCubeRot;
+    [SerializeField]
+    private GameObject TransformTools;
+    private Transform ModelTransformChild;
+    private GameObject go;
 
-    [SyncVar(hook = nameof(OnPosChanged))]
-    public Vector3 current_Pos;
-    [SyncVar(hook = nameof(OnRotChanged))]
-    public Quaternion current_Rot;
+    private SelectQRCode selectQR;
 
-    void OnPosChanged(Vector3 oldPos, Vector3 newPos)
+    private void Start()
     {
-
-        m_transform.position = newPos;
+        ModelTransform = GameObject.Find("ModelToAlign").GetComponent<Transform>();
+        selectQR = FindObjectOfType<SelectQRCode>();
     }
 
-    void OnRotChanged(Quaternion oldRot, Quaternion newRot)
+    private void Update()
     {
-        m_transform.rotation = newRot;
+        if(selectQR.isSelected)
+        {
+            //selectedCubeTransform = selectQR.selectedCube;
+            GetSelectedCubeTransformInfo(selectedCubeTransform);
+            SetObjectAlignwithTransformPoint(selectedCubeTransform);
+            ChangeModelToAlignTransform(m_QRCubePos, m_QRCubeRot);
+        }
+    }
+
+    void GetSelectedCubeTransformInfo(Transform parentTransform)
+    {
+        m_QRCubePos = parentTransform.position;
+        m_QRCubeRot = parentTransform.rotation;
+    }
+
+    void SetObjectAlignwithTransformPoint(Transform transformName)
+    {
+        Transform ModelChilds = ModelTransform.Find("QRcodes");
+        ModelTransformChild = ModelChilds.transform.Find(transformName.name);
+
+        Vector3 worldPos = ModelTransformChild.position;
+        Quaternion worldRot = ModelTransformChild.rotation;
+
+        //spawn a empty object align with QRCode and set as model's parent
+        go = GameObject.Instantiate(TransformTools, Vector3.up, Quaternion.identity);
+
+        go.transform.position = worldPos;
+        go.transform.rotation = worldRot;
+    }
+
+    //Pass the ShowCaseRoom triggered QRCode object position and rotation to the empty object.
+    //And rotating ModelToAlign object base on the empty object
+    void ChangeModelToAlignTransform(Vector3 m_QRCubePos, Quaternion m_QRCubeRot)
+    {
+        ModelTransform.SetParent(go.transform);
+
+        go.transform.position = m_QRCubePos;
+        go.transform.rotation = m_QRCubeRot;
+        Debug.Log("Moving Cube");
+        ModelTransform.SetParent(null);
+        Destroy(go);
     }
 }
